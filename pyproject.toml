@@ -17,6 +17,7 @@ dev = [
   "ruff >=0.6.3",
   "pytest >=8.3.2",
   "pandas >=2.0.0",
+  "fastparquet>=2024.11.0",
 ]
 
 [project.urls]
