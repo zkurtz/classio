@@ -1,6 +1,6 @@
 [project]
 name = "classio"
-version = "0.0.1"
+version = "0.0.2"
 description = "IO tools for python classes."
 authors = [{ name = "Zach Kurtz", email = "zkurtz@gmail.com" }]
 readme = "README.md"
