@@ -1,0 +1,1 @@
+"""Class decorator to declare IO methods of class data."""

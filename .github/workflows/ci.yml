@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: continuous-integration
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - '3.10'
+          - '3.13'
+
+    steps:
+    - name: Clone repo
+      uses: actions/checkout@v4
+
+    - name: Set the python version
+      run: echo "UV_PYTHON=${{ matrix.python-version }}" >> $GITHUB_ENV
+
+    - name: Setup uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "0.5.4"
+
+    - name: Linting check
+      run: uv run ruff check
+
+    - name: Formatting check
+      run: uv run ruff format --check
+
+    - name: Type checking
+      run: uv run pyright
+
+    - name: Unit tests
+      run: uv run pytest
