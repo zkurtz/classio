@@ -24,5 +24,5 @@ def test_declario(tmp_path: Path):
     filepath = tmp_path / "data"
     data.save(filepath)
     data2 = MyData.load(filepath)
-    assert data2.config == {"a": "1"}
-    assert data2.df.equals(pd.DataFrame({"a": [1, 2, 3]}))
+    assert data2.config == data.config
+    assert data2.df.equals(data.df)
