@@ -6,7 +6,7 @@ authors = [{ name = "Zach Kurtz", email = "zkurtz@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "dummio >=1.0.0",
+  "dummio >=1.1.0",
   "packio >=0.0.2",
 ]
 

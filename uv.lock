@@ -17,7 +17,7 @@ wheels = [
 
 [[package]]
 name = "classio"
-version = "0.0.1"
+version = "0.0.2"
 source = { editable = "." }
 dependencies = [
     { name = "dummio" },
@@ -36,7 +36,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dummio", specifier = ">=1.0.0" },
+    { name = "dummio", specifier = ">=1.1.0" },
     { name = "packio", specifier = ">=0.0.2" },
 ]
 
@@ -139,11 +139,11 @@ wheels = [
 
 [[package]]
 name = "dummio"
-version = "1.0.0"
+version = "1.1.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/83/bc/eeaae4d759a927e8d927b2820f3beaf6b481c5f2d318d2728edeeb624263/dummio-1.0.0.tar.gz", hash = "sha256:0a5a2437fdac46fdf469b043ce062d826d370c92af8bad39e30e988ce213e179", size = 5017 }
+sdist = { url = "https://files.pythonhosted.org/packages/b0/1b/8df0eaf5a4a19d3100894a396c9459fa2887cf7e642659954643851b7fb1/dummio-1.1.0.tar.gz", hash = "sha256:7a5180cbf7bea1e985ee643016153e0c2b29b40dd3885a3c3429649d4ef7d3ef", size = 6352 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6c/5e/38d8cf7e5c73311a8496f9e68db2b6b8ea777c8a4e14eb6856ed7cbe8aee/dummio-1.0.0-py3-none-any.whl", hash = "sha256:662b4a429ae5d623f9730f002d93e4934f896ac1e5dad7af793f1cb7b3cb2b98", size = 5914 },
+    { url = "https://files.pythonhosted.org/packages/d6/e2/461dcc359eed8cdd79e3fe5460491c925be351bda1f2cd49bb1f43abd96c/dummio-1.1.0-py3-none-any.whl", hash = "sha256:6d2aa131acfa8afed1f851c94229e342558a21f33d1191dc33cca2f84f8de952", size = 6697 },
 ]
 
 [[package]]
