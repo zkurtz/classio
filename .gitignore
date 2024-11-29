@@ -20,3 +20,6 @@ docs/_templates/
 # IDE-specific files
 .idea/
 .vscode/
+
+# Dev ops
+dev.py

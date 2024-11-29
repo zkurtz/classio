@@ -1,29 +1,15 @@
 """Class decorator to declare IO methods of class data."""
 
-from dataclasses import dataclass
+from typing import Type, Any
+from classio.constants import ModulePerAttribute
 from pathlib import Path
-from typing import Any, Protocol, Type
 import packio
-from dummio.constants import PathType
 
 
-class IO(Protocol):
-    """Protocol for IO modules."""
-
-    def save(self, data: ..., *, filepath: PathType) -> None:
-        """Declares the signature of an IO module save method."""
-        ...
-
-    def load(self, filepath: PathType) -> Any:
-        """Declares the signature of an IO module load method."""
-        ...
-
-
-@dataclass()
-class Declario:
+def declario(*, io_modules: ModulePerAttribute) -> Any:
     """Class decorator to declare IO methods of class data.
 
-    Use Declario as a decorator on a class to
+    Use as a decorator on a class to
       - declare the IO methods for each of the classes data attributes
       - add `save` and `load` methods to the class based on this declaration
       - such that the IO methods create use only a single file for the entire class.
@@ -36,7 +22,7 @@ class Declario:
         import dummio
         import dummio.pandas.df_parquet
 
-        @Declario({
+        @declario({
             "config": dummio.json,
             "df": dummio.pandas.df_parquet,
         })
@@ -59,9 +45,7 @@ class Declario:
             the decorated class.
     """
 
-    io_modules: dict[str, IO]
-
-    def __call__(self, cls: Type) -> Type:
+    def decorator(cls: Type) -> Any:
         """Decorates the class with IO methods.
 
         Args:
@@ -72,27 +56,30 @@ class Declario:
         """
 
         # Check that all keys in `io_modules` are valid data attribute names
-        invalid_keys = set(self.io_modules.keys()) - set(cls.__annotations__.keys())
+        invalid_keys = set(io_modules.keys()) - set(cls.__annotations__.keys())
         if invalid_keys:
             raise ValueError(f"Invalid keys in `io_modules`: {invalid_keys}")
 
-        def save(_self, filepath: str | Path) -> None:
+        def save(self, filepath: str | Path) -> None:
             """Saves the class data to a single file."""
             with packio.Writer(Path(filepath)) as writer:
-                for attr_name, io_module in self.io_modules.items():
-                    attr_file = writer.file(attr_name)
-                    attr_data = getattr(_self, attr_name)
-                    io_module.save(data=attr_data, filepath=attr_file)
+                for attr_name, io_module in io_modules.items():
+                    io_module.save(
+                        data=getattr(self, attr_name),
+                        filepath=writer.file(attr_name),
+                    )
 
         def load(cls: Type, filepath: str | Path) -> Any:
             """Loads the class data from a single file."""
             with packio.Reader(Path(filepath)) as reader:
-                data = {}
-                for attr_name, io_module in self.io_modules.items():
-                    attr_file = reader.file(attr_name)
-                    data[attr_name] = io_module.load(filepath=attr_file)
+                data = {
+                    attr_name: io_module.load(filepath=reader.file(attr_name))
+                    for attr_name, io_module in io_modules.items()
+                }
                 return cls(**data)
 
-        cls.save = save
         cls.load = classmethod(load)
+        cls.save = save
         return cls
+
+    return decorator  # Return the inner decorator function
