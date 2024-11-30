@@ -20,12 +20,7 @@ import dummio
 import dummio.pandas.df_parquet
 from classio import Declario
 
-@Declario(
-    {
-        "config": dummio.json,
-        "df": dummio.pandas.df_parquet,
-    }
-)
+@Declario()
 @dataclass()
 class MyData:
     config: dict[str, str]
