@@ -17,7 +17,6 @@ with warnings.catch_warnings():
     import onnx
     from skl2onnx import convert_sklearn
     from skl2onnx.common.data_types import FloatTensorType
-    import dummio.onnx
 
 
 class Metadata(pydantic.BaseModel):
@@ -28,7 +27,7 @@ class Metadata(pydantic.BaseModel):
     trained_at: datetime
 
 
-@declario(io_modules={"model": dummio.onnx})
+@declario()
 @dataclass
 class ModelPackage:
     """A trained model artifact."""
