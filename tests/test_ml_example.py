@@ -1,15 +1,17 @@
 """Testing the classio.declario class decorator."""
 
-from dataclasses import dataclass
-import pandas as pd
-from classio import declario
-from pathlib import Path
-from datetime import datetime, timezone
-from uuid import uuid4, UUID
-import pydantic
 import warnings
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from uuid import UUID, uuid4
+
+import pandas as pd
+import pydantic
 from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
+
+from classio import declario
 
 with warnings.catch_warnings():
     # trying to ignore this exact warning: "DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated"
