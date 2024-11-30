@@ -1,13 +1,21 @@
 """Class decorator to declare IO methods of class data."""
 
-from typing import Type, Any, Dict
-from types import ModuleType
-from classio.constants import ModulePerAttribute
-from pathlib import Path
-import packio
-import inspect
 import importlib
+import inspect
 import types
+import warnings
+from pathlib import Path
+from types import ModuleType
+from typing import Any, Dict, Type
+
+import packio
+
+from classio.constants import ModulePerAttribute
+
+with warnings.catch_warnings():
+    # trying to ignore this exact warning: "DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated"
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    from dummio.protocol import assert_module_protocol
 
 
 def _is_dict_annotation(annotation: Any) -> bool:
@@ -29,7 +37,7 @@ def _require_type_hints(signature: inspect.Signature) -> None:
 
     Raises:
         ValueError: If any parameter in the signature -- except for "self" -- lacks a type hint.
-        ValueError: If any parameter has a union type hint.
+        ValueError: If any parameter has a Union type hint.
     """
     params = signature.parameters
     for name, param in params.items():
@@ -115,6 +123,9 @@ def declario(*, io_modules: ModulePerAttribute | None = None) -> Any:
     """
 
     io_modules = io_modules.copy() if io_modules else {}
+    # any io modules need to conform to the dummio protocol for IO modules:
+    for module in io_modules.values():
+        assert_module_protocol(module=module)
 
     def decorator(cls: Type) -> Any:
         """Decorates the class with IO methods.

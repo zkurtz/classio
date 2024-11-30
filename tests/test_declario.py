@@ -1,10 +1,12 @@
 """Testing the classio.declario class decorator."""
 
-from dataclasses import dataclass
-import pandas as pd
-from classio import declario
-from pathlib import Path
 import warnings
+from dataclasses import dataclass
+from pathlib import Path
+
+import pandas as pd
+
+from classio import declario
 
 with warnings.catch_warnings():
     # trying to ignore this exact warning: "DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated"
