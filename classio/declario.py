@@ -66,6 +66,8 @@ def _resolve_io_module(name: str, *, annotation: Any, module: ModuleType | None)
         return importlib.import_module("dummio.pandas.df_parquet")
     elif hasattr(annotation, "model_validate_json"):
         return importlib.import_module("dummio.pydantic")
+    elif annotation.__name__ == "ModelProto" and annotation.__module__ == "onnx.onnx_ml_pb2":
+        return importlib.import_module("dummio.onnx")
     raise ValueError(f"No IO module provided or inferred for {name}: {annotation}")
 
 
@@ -100,7 +102,8 @@ def declario(*, io_modules: ModulePerAttribute | None = None) -> Any:
         assert data2.df.equals(pd.DataFrame({"a": [1, 2, 3]}))
         ```
 
-    Attributes:
+    Args:
+        cls: The class to decorate.
         io_modules: A dictionary mapping data attribute names to modules containing corresponding save/load methods.
 
     Raises:
@@ -162,4 +165,4 @@ def declario(*, io_modules: ModulePerAttribute | None = None) -> Any:
         cls.save = save
         return cls
 
-    return decorator  # Return the inner decorator function
+    return decorator
