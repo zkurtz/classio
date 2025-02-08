@@ -53,19 +53,16 @@ def _require_type_hints(signature: inspect.Signature) -> None:
             )
 
 
-def _resolve_io_module(name: str, *, annotation: Any, module: ModuleType | None) -> ModuleType:
+def _infer_io_module(name: str, *, annotation: Any) -> ModuleType:
     """Deduce the IO module to use based on a type annotation.
 
     Args:
         name: The name of the attribute.
         annotation: The type annotation of the attribute.
-        module: The optional IO module explicitly provided by the user.
 
     Returns:
         An IO module, having methods `save` and `load`.
     """
-    if module:
-        return module
     if annotation is str:
         return importlib.import_module("dummio.text")
     elif _is_dict_annotation(annotation):
@@ -113,6 +110,7 @@ def declario(*, io_modules: ModulePerAttribute | None = None) -> Any:
     Args:
         cls: The class to decorate.
         io_modules: A dictionary mapping data attribute names to modules containing corresponding save/load methods.
+            Each module must have `save` and `load` methods that conform to the dummio protocol for IO modules.
 
     Raises:
         ValueError: If the set of arguments to the class __init__ is not identical to the set of class attributes
@@ -138,38 +136,41 @@ def declario(*, io_modules: ModulePerAttribute | None = None) -> Any:
         """
         _require_type_hints(signature=inspect.signature(cls.__init__))
         signature = inspect.signature(cls.__init__).parameters
-        item_names = list(signature)
-        item_names.remove("self")
+        arg_names = list(signature)
+        arg_names.remove("self")
+
         # Check that all keys in `io_modules` are valid data attribute names
-        invalid_keys = set(io_modules.keys()) - set(item_names)
+        invalid_keys = set(io_modules.keys()) - set(arg_names)
         if invalid_keys:
             raise ValueError(f"Invalid keys in `io_modules`: {invalid_keys}")
-        annotations = {name: signature[name].annotation for name in item_names}
-        io = {
-            name: _resolve_io_module(name, annotation=annotations[name], module=io_modules.get(name, None))
-            for name in item_names
+
+        annotations = {name: signature[name].annotation for name in arg_names}
+        io_per_attribute = {
+            name: io_modules.get(name, None) or _infer_io_module(name, annotation=annotations[name])
+            for name in arg_names
         }
 
         def save(self, filepath: str | Path) -> None:
             """Saves the class data to a single file."""
             with packio.Writer(Path(filepath)) as writer:
-                for name in item_names:
-                    io[name].save(
-                        data=getattr(self, name),
-                        filepath=writer.file(name),
-                    )
+                for name in arg_names:
+                    io_module = io_per_attribute[name]
+                    data = getattr(self, name)
+                    filepath = writer.file(name)
+                    io_module.save(data=data, filepath=filepath)
 
         def load(cls: Type, filepath: str | Path) -> Any:
             """Loads the class data from a single file."""
             data: dict[str, Any] = {}
             with packio.Reader(Path(filepath)) as reader:
-                for name in item_names:
+                for name in arg_names:
                     annotation = annotations[name]
-                    if hasattr(annotation, "model_validate_json"):
-                        # This is the pydantic case
-                        data[name] = io[name].load(filepath=reader.file(name), model=annotation)
+                    loader = io_per_attribute[name].load
+                    filepath = reader.file(name)
+                    if hasattr(annotation, "model_validate_json"):  # The pydantic case
+                        data[name] = loader(filepath=filepath, model=annotation)
                     else:
-                        data[name] = io[name].load(filepath=reader.file(name))
+                        data[name] = loader(filepath=filepath)
             return cls(**data)
 
         cls.load = classmethod(load)

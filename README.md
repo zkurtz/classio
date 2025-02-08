@@ -83,12 +83,4 @@ Warning: `declario` does not *intrinsically* guarantee exact equality of objects
 
 ## Development
 
-Create and activate a virtual env for dev ops:
-```
-git clone git@github.com:zkurtz/classio.git
-cd classio
-pip install uv
-uv sync
-source .venv/bin/activate
-pre-commit install
-```
+Consider using the [simplest-possible virtual environment](https://gist.github.com/zkurtz/4c61572b03e667a7596a607706463543) if working directly on this repo.
