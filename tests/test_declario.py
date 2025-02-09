@@ -22,7 +22,7 @@ def test_basic_class(tmp_path: Path):
     data = MyData(config={"a": "1"}, df=pd.DataFrame({"a": [1, 2, 3]}))
     filepath = tmp_path / "data"
     data.save(filepath=filepath)
-    data2 = MyData.load(filepath)
+    data2 = MyData.from_file(filepath)
     assert data2.config == data.config
     assert data2.df.equals(data.df)
 
@@ -44,6 +44,6 @@ def test_dataclass(tmp_path: Path):
     data = MyData(config={"a": "1"}, df=pd.DataFrame({"a": [1, 2, 3]}))
     filepath = tmp_path / "data"
     data.save(filepath=filepath)
-    data2 = MyData.load(filepath)
+    data2 = MyData.from_file(filepath)
     assert data2.config == data.config
     assert data2.df.equals(data.df)
