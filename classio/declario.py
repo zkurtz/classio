@@ -1,32 +1,15 @@
 """Class decorator to declare IO methods of class data."""
 
-import importlib
 import inspect
 import types
-import warnings
 from pathlib import Path
-from types import ModuleType
-from typing import Any, Dict, Type
+from typing import Any, Type
 
 import packio
+from dummio.protocol import assert_module_protocol
 
 from classio.constants import ModulePerAttribute
-
-with warnings.catch_warnings():
-    # trying to ignore this exact warning: "DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated"
-    warnings.filterwarnings("ignore", category=DeprecationWarning)
-    from dummio.protocol import assert_module_protocol
-
-
-def _is_dict_annotation(annotation: Any) -> bool:
-    """Checks if a type annotation is a dictionary.
-
-    Args:
-        annotation: The type annotation to check.
-    """
-    if hasattr(annotation, "__origin__"):
-        return annotation.__origin__ in {dict, Dict}
-    return False
+from classio.inference import infer_io_module, load_requires_model
 
 
 def _require_type_hints(signature: inspect.Signature) -> None:
@@ -51,29 +34,6 @@ def _require_type_hints(signature: inspect.Signature) -> None:
                 f"Union type hint found for parameter {name}: {param.annotation}"
                 ", but declario does not support union types."
             )
-
-
-def _infer_io_module(name: str, *, annotation: Any) -> ModuleType:
-    """Deduce the IO module to use based on a type annotation.
-
-    Args:
-        name: The name of the attribute.
-        annotation: The type annotation of the attribute.
-
-    Returns:
-        An IO module, having methods `save` and `load`.
-    """
-    if annotation is str:
-        return importlib.import_module("dummio.text")
-    elif _is_dict_annotation(annotation):
-        return importlib.import_module("dummio.json")
-    elif annotation.__module__ == "pandas.core.frame":
-        return importlib.import_module("dummio.pandas.df_parquet")
-    elif hasattr(annotation, "model_validate_json"):
-        return importlib.import_module("dummio.pydantic")
-    elif annotation.__name__ == "ModelProto" and annotation.__module__ == "onnx.onnx_ml_pb2":
-        return importlib.import_module("dummio.onnx")
-    raise ValueError(f"No IO module provided or inferred for {name}: {annotation}")
 
 
 def declario(*, io_modules: ModulePerAttribute | None = None) -> Any:
@@ -102,7 +62,7 @@ def declario(*, io_modules: ModulePerAttribute | None = None) -> Any:
 
         data = MyData(config={"a": "1"}, df=pd.DataFrame({"a": [1, 2, 3]}))
         data.save("data")
-        data2 = MyData.load("data")
+        data2 = MyData.from_file("data")
         assert data2.config == {"a": "1"}
         assert data2.df.equals(pd.DataFrame({"a": [1, 2, 3]}))
         ```
@@ -146,7 +106,7 @@ def declario(*, io_modules: ModulePerAttribute | None = None) -> Any:
 
         annotations = {name: signature[name].annotation for name in arg_names}
         io_per_attribute = {
-            name: io_modules.get(name, None) or _infer_io_module(name, annotation=annotations[name])
+            name: io_modules.get(name, None) or infer_io_module(name, annotation=annotations[name])
             for name in arg_names
         }
 
@@ -167,13 +127,13 @@ def declario(*, io_modules: ModulePerAttribute | None = None) -> Any:
                     annotation = annotations[name]
                     loader = io_per_attribute[name].load
                     filepath = reader.file(name)
-                    if hasattr(annotation, "model_validate_json"):  # The pydantic case
+                    if load_requires_model(annotation):
                         data[name] = loader(filepath=filepath, model=annotation)
                     else:
                         data[name] = loader(filepath=filepath)
             return cls(**data)
 
-        cls.load = classmethod(load)
+        cls.from_file = classmethod(load)
         cls.save = save
         return cls
 

@@ -66,7 +66,7 @@ def test_ml_example(tmp_path: Path) -> None:
     model = build_model()
     filepath = tmp_path / "test_model"
     model.save(filepath)
-    model2 = ModelPackage.load(filepath)
+    model2 = ModelPackage.from_file(filepath)
 
     assert id(model) != id(model2), "Although data2 should equal data, they should not be the same object."
     assert model.metadata == model2.metadata
