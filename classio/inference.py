@@ -65,6 +65,15 @@ def load_requires_model(annotation: Any) -> bool:
     )
 
 
+def _is_numpy_ndarray(annotation: Any) -> bool:
+    """Checks if a type annotation is a numpy ndarray.
+
+    Args:
+        annotation: The type annotation to check.
+    """
+    return annotation.__name__ == "ndarray" and annotation.__module__ == "numpy"
+
+
 def infer_io_module(name: str, *, annotation: Any) -> ModuleType:
     """Deduce the IO module to use based on a type annotation.
 
@@ -82,6 +91,10 @@ def infer_io_module(name: str, *, annotation: Any) -> ModuleType:
         return importlib.import_module("dummio.json")
     elif annotation.__module__ == "pandas.core.frame":
         return importlib.import_module("dummio.pandas.df_parquet")
+    elif annotation.__module__ == "pandas.core.series":
+        return importlib.import_module("dummio.pandas.series_parquet")
+    elif _is_numpy_ndarray(annotation):
+        return importlib.import_module("dummio.numpy.ndarray_io")
     elif _is_pydantic_annotation(annotation):
         return importlib.import_module("dummio.pydantic")
     elif annotation.__name__ == "ModelProto" and annotation.__module__ == "onnx.onnx_ml_pb2":
