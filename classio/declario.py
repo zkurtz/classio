@@ -135,6 +135,7 @@ def declario(*, io_modules: ModulePerAttribute | None = None) -> Any:
 
         cls.from_file = classmethod(load)
         cls.save = save
+        cls.__io_per_attribute__ = io_per_attribute
         return cls
 
     return decorator
